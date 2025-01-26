@@ -14,6 +14,6 @@ datasource db {
 }
 
 model Question {
-  id       Int    @id @default(autoincrement())
+  id   Int    @id @default(autoincrement())
   name String
 }
