@@ -5,7 +5,11 @@ import { Label } from './ui/label';
 import { Separator } from './ui/separator';
 import { Textarea } from './ui/textarea';
 
-export default function Questions() {
+interface QuestionsProps {
+    onFormDataChange: (data: any) => void;
+}
+
+export default function Questions({ onFormDataChange }: QuestionsProps) {
     const questions = [
         { name: "Content Quality" },
         { name: "Production Value" },
@@ -27,14 +31,21 @@ export default function Questions() {
     ];
 
     const [visable, setVisable] = useState<{ [key: string]: number }>({});
+    const [comments, setComments] = useState<string>('');
 
     function handleGetReview(questionName: string, value: number) {
-        setVisable(prev => ({
-            ...prev,
+        const newVisable = {
+            ...visable,
             [questionName]: value
-        }));
+        };
+        setVisable(newVisable);
+        onFormDataChange({ responses: newVisable, comments });
     }
-    console.log(visable)
+
+    function handleCommentsChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+        setComments(e.target.value);
+        onFormDataChange({ responses: visable, comments: e.target.value });
+    }
 
     return (
         <>
@@ -59,22 +70,22 @@ export default function Questions() {
 
                         <div className="mt-4 w-full h-fit">
                             {visable[item.name] === 100 && (
-                                <p className="text-green-600 font-semibold">
+                                <p className="text-primary font-semibold">
                                     Exceptional work! Your content stands out with top-notch quality.
                                 </p>
                             )}
                             {visable[item.name] === 75 && (
-                                <p className="text-blue-600 font-semibold">
+                                <p className="text-blue-700 font-semibold">
                                     Great job! Your content is impressive and well-received.
                                 </p>
                             )}
                             {visable[item.name] === 50 && (
-                                <p className="text-yellow-600 font-semibold">
+                                <p className="text-yellow-500 font-semibold">
                                     Decent effort! Your content is satisfactory but has room for improvement.
                                 </p>
                             )}
                             {visable[item.name] === 25 && (
-                                <p className="text-orange-600 font-semibold">
+                                <p className="text-orange-500 font-semibold">
                                     Fair attempt! Consider enhancing certain aspects to make your content shine.
                                 </p>
                             )}
@@ -91,7 +102,12 @@ export default function Questions() {
             }
             <div className='space-y-2'>
                 <Label id='comments'>Additional Comments</Label>
-                <Textarea name='comments' />
+                <Textarea 
+                    name='comments' 
+                    className='bg-muted'
+                    value={comments}
+                    onChange={handleCommentsChange}
+                />
             </div>
         </>
     )
