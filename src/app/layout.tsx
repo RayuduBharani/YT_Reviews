@@ -7,15 +7,6 @@ import { ThemeProvider } from "@/components/theme-provider";
 const poppins = Poppins({
   weight:["100" , "200", "300", "400", "500", "600", "700", "800", "900"],
 });
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 export const metadata: Metadata = {
   title: "YT Reviews",
@@ -30,7 +21,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${poppins.className} antialiased`}
+        className={`${poppins.className} antialiased`}
       >
         <ThemeProvider attribute="class" defaultTheme="system">
           {children}
