@@ -77,7 +77,7 @@ export default function Questions({ questions }: { questions: { id: number; name
         return feedbacks[question]?.[value] || feedbacks["default"][value];
     };
 
-    const createPieChart = async (answeredQuestions: number, totalQuestions: number, primaryColor: [number, number, number]) => {
+    const createPieChart = async (rating: number, primaryColor: [number, number, number]) => {
         const chartContainer = document.createElement('div');
         chartContainer.style.width = '200px';
         chartContainer.style.height = '200px';
@@ -98,9 +98,9 @@ export default function Questions({ questions }: { questions: { id: number; name
         new Chart(ctx, {
             type: 'pie',
             data: {
-                labels: ['Completed', 'Remaining'],
+                labels: ['Rating', 'Remaining'],
                 datasets: [{
-                    data: [answeredQuestions, totalQuestions - answeredQuestions],
+                    data: [rating, 100 - rating],
                     backgroundColor: [
                         `rgb(${primaryColor.join(',')})`,
                         '#e5e7eb'
@@ -172,34 +172,32 @@ export default function Questions({ questions }: { questions: { id: number; name
             doc.setFontSize(60);
             doc.setTextColor(...watermarkColor);
             doc.setFont("helvetica", "bold");
-            doc.text("TECH TELUGU", pageWidth/1.5, pageHeight/1.5, {
+            doc.text("TELUGU TECHPAD", pageWidth/1.5, pageHeight/1.5, {
                 align: 'center',
                 angle: 45
             });
         };
         
         const addHeaderBackground = async () => {
-            doc.setFillColor(...primaryColor);
+            doc.setFillColor(245, 245, 245);
             doc.rect(0, 0, pageWidth, 25, 'F');
             
             try {
-                // Use a small, optimized tech-related image
-                const logoUrl = 'https://imgs.search.brave.com/vBGmQOfo89vFVbUhBSfsT_uugN97SabHf5rcBIwcinU/rs:fit:500:0:0:0/g:ce/aHR0cHM6Ly93d3cu/YXBweXBpZS5jb20v/d3AtY29udGVudC91/cGxvYWRzLzIwMjIv/MTEvMy0xOTk4Lmpw/Zw';
+                const logoUrl = 'https://i.postimg.cc/2y1sBtJz/Whats-App-Image-2025-01-27-at-14-03-43-c22d23b7.jpg';
                 const base64Image = await loadImage(logoUrl);
                 doc.addImage(base64Image, 'PNG', 10, 5, 15, 15);
             } catch (error) {
                 console.error('Error adding logo:', error);
-                // Enhanced fallback design
                 doc.setFillColor(...primaryColor);
                 doc.circle(17.5, 12.5, 7.5, 'F');
                 doc.setFillColor(...secondaryColor);
                 doc.circle(17.5, 12.5, 5.5, 'F');
             }
             
-            doc.setTextColor(...secondaryColor);
+            doc.setTextColor(0,0,0);
             doc.setFontSize(16);
             doc.setFont("helvetica", "bold");
-            doc.text("TECH TELUGU", 35, 14);
+            doc.text("TELUGU TECHPAD", 35, 14);
             
             doc.setFontSize(10);
             doc.setFont("helvetica", "normal");
@@ -286,7 +284,7 @@ export default function Questions({ questions }: { questions: { id: number; name
             });
         }
 
-        const chartImage = await createPieChart(answeredQuestions, questions.length, primaryColor);
+        const chartImage = await createPieChart(averageScore, primaryColor);
         
         if (chartImage) {
             checkAndAddPage(80);
@@ -298,7 +296,7 @@ export default function Questions({ questions }: { questions: { id: number; name
             doc.setFont("helvetica", "bold");
             doc.setFontSize(12);
             doc.setTextColor(...primaryColor);
-            doc.text("Performance Summary", margin + 10, yPos + 10);
+            doc.text("Overall Rating", margin + 10, yPos + 10);
 
             doc.addImage(chartImage, 'PNG', margin + 10, yPos + 15, 40, 40);
 
@@ -306,10 +304,10 @@ export default function Questions({ questions }: { questions: { id: number; name
             doc.setFontSize(10);
             doc.setTextColor(0, 0, 0);
             const summaryText = [
-                `Total Questions: ${questions.length}`,
-                `Questions Evaluated: ${answeredQuestions}`,
                 `Overall Rating: ${averageScore}%`,
-                `Status: ${averageScore >= 75 ? 'Excellent' : averageScore >= 50 ? 'Good' : 'Needs Improvement'}`
+                `Performance Level: ${averageScore >= 75 ? 'Excellent' : averageScore >= 50 ? 'Good' : 'Needs Improvement'}`,
+                `Total Categories Evaluated: ${answeredQuestions}`,
+                `Rating Status: ${averageScore >= 90 ? 'Outstanding' : averageScore >= 75 ? 'Very Good' : averageScore >= 50 ? 'Satisfactory' : 'Requires Attention'}`
             ];
 
             summaryText.forEach((text, index) => {
@@ -353,7 +351,7 @@ export default function Questions({ questions }: { questions: { id: number; name
         doc.setFont("helvetica", "italic");
         doc.setFontSize(10);
         doc.setTextColor(...primaryColor);
-        const finalStatement = "This report has been professionally reviewed and rated by Telugu-TechBoy, " +
+        const finalStatement = "This report has been professionally reviewed and rated by Telugu TechPad, " +
                              "providing expert insights for YouTube channel optimization and growth.";
         const wrappedStatement = doc.splitTextToSize(finalStatement, pageWidth - (2 * margin) - 20);
         doc.text(wrappedStatement, pageWidth/2, yPos + 10, { align: 'center' });
@@ -361,18 +359,18 @@ export default function Questions({ questions }: { questions: { id: number; name
         const pageCount = doc.getNumberOfPages();
         for(let i = 1; i <= pageCount; i++) {
             doc.setPage(i);
-            doc.setFont("helvetica", "normal");
+            doc.setFont("helvetica", "normal"); 
             doc.setFontSize(8);
             doc.setTextColor(100, 100, 100);
             doc.text(
-                `© ${new Date().getFullYear()} Tech Telugu | Professional Channel Review | Page ${i} of ${pageCount}`,
+                `© ${new Date().getFullYear()} Telugu TechPad | Professional Channel Review | Page ${i} of ${pageCount}`,
                 pageWidth/2,
                 pageHeight - 10,
                 { align: 'center' }
             );
         }
     
-        doc.save(`${channelName.toLowerCase()}-tech-telugu-review.pdf`);
+        doc.save(`${channelName.toLowerCase()}-tech-pad-review.pdf`);
     };
 
     if(questions.length === 0) {
@@ -450,7 +448,7 @@ export default function Questions({ questions }: { questions: { id: number; name
                     placeholder="Enter any additional observations or recommendations..."
                 />
             </div>
-            <Button type="submit" className="w-full md:w-auto">
+            <Button  type="submit" className="w-full md:w-auto">
                 Generate Professional Review
             </Button>
         </form>
