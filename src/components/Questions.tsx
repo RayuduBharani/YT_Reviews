@@ -1,5 +1,5 @@
 "use client"
-import React, { useState } from 'react'
+import React, { useState } from 'react';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from './ui/label';
 import { Separator } from './ui/separator';
@@ -7,6 +7,8 @@ import { Textarea } from './ui/textarea';
 import { Button } from './ui/button';
 import jsPDF from 'jspdf';
 import { Input } from "@/components/ui/input";
+import { Chart, ChartConfiguration } from 'chart.js/auto';
+import html2canvas from 'html2canvas';
 
 export default function Questions({ questions }: { questions: { id: number; name: string }[] }) {
     const percentageOptions = [
@@ -75,7 +77,82 @@ export default function Questions({ questions }: { questions: { id: number; name
         return feedbacks[question]?.[value] || feedbacks["default"][value];
     };
 
-    const generatePDF = (e: React.FormEvent) => {
+    const createPieChart = async (answeredQuestions: number, totalQuestions: number, primaryColor: [number, number, number]) => {
+        const chartContainer = document.createElement('div');
+        chartContainer.style.width = '200px';
+        chartContainer.style.height = '200px';
+        chartContainer.style.backgroundColor = 'white';
+        document.body.appendChild(chartContainer);
+
+        const canvas = document.createElement('canvas');
+        canvas.width = 200;
+        canvas.height = 200;
+        chartContainer.appendChild(canvas);
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+            document.body.removeChild(chartContainer);
+            return null;
+        }
+
+        new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: ['Completed', 'Remaining'],
+                datasets: [{
+                    data: [answeredQuestions, totalQuestions - answeredQuestions],
+                    backgroundColor: [
+                        `rgb(${primaryColor.join(',')})`,
+                        '#e5e7eb'
+                    ]
+                }]
+            },
+            options: {
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom'
+                    }
+                },
+                animation: false
+            }
+        } as ChartConfiguration);
+
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        try {
+            const chartImage = await html2canvas(chartContainer);
+            document.body.removeChild(chartContainer);
+            return chartImage.toDataURL('image/png');
+        } catch (error) {
+            console.error('Error generating chart:', error);
+            document.body.removeChild(chartContainer);
+            return null;
+        }
+    };
+
+    const loadImage = async (url: string): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                if (ctx) {
+                    ctx.drawImage(img, 0, 0);
+                    resolve(canvas.toDataURL('image/png'));
+                } else {
+                    reject(new Error('Failed to get canvas context'));
+                }
+            };
+            img.onerror = () => reject(new Error('Failed to load image'));
+            img.src = url;
+        });
+    };
+
+    const generatePDF = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!channelName.trim()) {
             alert('Please enter a channel name');
@@ -84,10 +161,9 @@ export default function Questions({ questions }: { questions: { id: number; name
         
         const doc = new jsPDF();
         
-      
-        const primaryColor: [number, number, number] = [22, 163, 74];  // Professional Green
-        const secondaryColor: [number, number, number] = [255, 255, 255];  // White
-        const watermarkColor: [number, number, number] = [240, 240, 240]; // Light gray for watermark
+        const primaryColor: [number, number, number] = [22, 163, 74];
+        const secondaryColor: [number, number, number] = [255, 255, 255];
+        const watermarkColor: [number, number, number] = [240, 240, 240];
         const pageWidth = doc.internal.pageSize.width;
         const pageHeight = doc.internal.pageSize.height;
         
@@ -102,13 +178,23 @@ export default function Questions({ questions }: { questions: { id: number; name
             });
         };
         
-        const addHeaderBackground = () => {
+        const addHeaderBackground = async () => {
             doc.setFillColor(...primaryColor);
             doc.rect(0, 0, pageWidth, 25, 'F');
             
-            doc.circle(20, 12.5, 6, 'F');
-            doc.setFillColor(...secondaryColor);
-            doc.circle(20, 12.5, 4, 'F');
+            try {
+                // Use a small, optimized tech-related image
+                const logoUrl = 'https://imgs.search.brave.com/vBGmQOfo89vFVbUhBSfsT_uugN97SabHf5rcBIwcinU/rs:fit:500:0:0:0/g:ce/aHR0cHM6Ly93d3cu/YXBweXBpZS5jb20v/d3AtY29udGVudC91/cGxvYWRzLzIwMjIv/MTEvMy0xOTk4Lmpw/Zw';
+                const base64Image = await loadImage(logoUrl);
+                doc.addImage(base64Image, 'PNG', 10, 5, 15, 15);
+            } catch (error) {
+                console.error('Error adding logo:', error);
+                // Enhanced fallback design
+                doc.setFillColor(...primaryColor);
+                doc.circle(17.5, 12.5, 7.5, 'F');
+                doc.setFillColor(...secondaryColor);
+                doc.circle(17.5, 12.5, 5.5, 'F');
+            }
             
             doc.setTextColor(...secondaryColor);
             doc.setFontSize(16);
@@ -133,7 +219,7 @@ export default function Questions({ questions }: { questions: { id: number; name
             return false;
         };
     
-        addHeaderBackground();
+        await addHeaderBackground();
         addWatermark(1);
     
         doc.setTextColor(0, 0, 0);
@@ -172,62 +258,66 @@ export default function Questions({ questions }: { questions: { id: number; name
             doc.setFont("helvetica", "bold");
             doc.setTextColor(...primaryColor);
             doc.text("Detailed Performance Analysis", margin, yPos);
-            yPos += 10;
+            yPos += 8;
 
             Object.entries(formData.responses).forEach(([question, value], index) => {
-                checkAndAddPage(40);
+                checkAndAddPage(30);
                 
-                doc.setFontSize(12);
+                doc.setFontSize(11);
                 doc.setTextColor(0, 0, 0);
                 doc.text(`${index + 1}. ${question}`, margin, yPos);
-                yPos += 8;
+                yPos += 6;
                 
-                doc.setFillColor(0,0,0);
-                doc.roundedRect(margin, yPos - 5.5, 35, 8, 1, 1, 'F');
+                doc.setFillColor(...primaryColor);
+                doc.roundedRect(margin, yPos - 4, 35, 6, 1, 1, 'F');
                 doc.setFont("helvetica", "normal");
                 doc.setTextColor(...secondaryColor);
-                doc.setFontSize(10);
+                doc.setFontSize(9);
                 doc.text(`${value}%`, margin + 5, yPos);
-                
-                doc.setFontSize(8);
-                doc.setTextColor(...primaryColor);
-                doc.text("", pageWidth - margin - 20, yPos, { align: 'right' });
-                yPos += 8;
                 
                 const feedback = getFeedbackText(value as number, question);
                 if (feedback) {
-                    doc.setFontSize(10);
+                    doc.setFontSize(9);
                     doc.setTextColor(80, 80, 80);
                     const splitFeedback = doc.splitTextToSize(feedback, pageWidth - (2 * margin) - 10);
-                    doc.text(splitFeedback, margin + 5, yPos);
-                    yPos += (splitFeedback.length * 6) + 12;
+                    doc.text(splitFeedback, margin + 45, yPos);
+                    yPos += (splitFeedback.length * 5) + 8;
                 }
             });
         }
 
-        checkAndAddPage(50);
-        yPos += 5;
+        const chartImage = await createPieChart(answeredQuestions, questions.length, primaryColor);
         
-        doc.setFillColor(245, 245, 245);
-        doc.rect(margin, yPos, pageWidth - (2 * margin), 35, 'F');
-        
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(12);
-        doc.setTextColor(...primaryColor);
-        doc.text("Performance Summary", margin + 10, yPos + 10);
-        
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(10);
-        doc.setTextColor(0, 0, 0);
-        const summaryText = [
-            `Total Questions Evaluated: ${answeredQuestions}`,
-            `Overall Channel Rating: ${averageScore}%`,
-            `Assessment Status: ${averageScore >= 75 ? 'Excellent' : averageScore >= 50 ? 'Good' : 'Needs Improvement'}`
-        ];
-        summaryText.forEach((text, index) => {
-            doc.text(text, margin + 10, yPos + 20 + (index * 6));
-        });
-        yPos += 45;
+        if (chartImage) {
+            checkAndAddPage(80);
+            yPos += 10;
+
+            doc.setFillColor(245, 245, 245);
+            doc.roundedRect(margin, yPos, pageWidth - (2 * margin), 70, 3, 3, 'F');
+
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(12);
+            doc.setTextColor(...primaryColor);
+            doc.text("Performance Summary", margin + 10, yPos + 10);
+
+            doc.addImage(chartImage, 'PNG', margin + 10, yPos + 15, 40, 40);
+
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(10);
+            doc.setTextColor(0, 0, 0);
+            const summaryText = [
+                `Total Questions: ${questions.length}`,
+                `Questions Evaluated: ${answeredQuestions}`,
+                `Overall Rating: ${averageScore}%`,
+                `Status: ${averageScore >= 75 ? 'Excellent' : averageScore >= 50 ? 'Good' : 'Needs Improvement'}`
+            ];
+
+            summaryText.forEach((text, index) => {
+                doc.text(text, margin + 60, yPos + 25 + (index * 6));
+            });
+
+            yPos += 75;
+        }
 
         if (formData.comments) {
             checkAndAddPage(40);
