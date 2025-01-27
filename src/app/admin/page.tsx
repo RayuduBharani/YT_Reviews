@@ -53,11 +53,11 @@ export default async function page() {
                 </div>
                 {questionsData.length != 0 ?
                     questionsData.map((question, index) => (
-                        <div key={index} className='group p-6 rounded-lg border border-border hover:border-primary transition-all duration-300 shadow-sm'>
+                        <div key={index} className='group p-6 h-fit overflow-hidden rounded-lg border border-border hover:border-primary transition-all duration-300 shadow-sm'>
                             <div className='flex w-full h-fit items-start justify-between gap-4'>
-                                <div className='flex gap-4 w-full'>
+                                <div className='flex gap-4 w-full h-auto'>
                                     <span className='text-red-500 font-bold min-w-[24px]'>{index + 1}.</span>
-                                    <p className='text-sm font-semibold text-foreground/70'>{question.name}</p>
+                                    <p className='text-sm font-semibold text-foreground/70 truncate '>{question.name}</p>
                                 </div>
                                 <button className='opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:scale-110'>
                                     <DeleteQuestions id={question.id} />

@@ -136,12 +136,47 @@ export default function Questions({ questions }: { questions: { id: number; name
             const img = new Image();
             img.crossOrigin = 'anonymous';
             img.onload = () => {
+                // Create a canvas with fixed dimensions for the circular image
                 const canvas = document.createElement('canvas');
-                canvas.width = img.width;
-                canvas.height = img.height;
+                const size = Math.min(img.width, img.height);
+                canvas.width = size;
+                canvas.height = size;
                 const ctx = canvas.getContext('2d');
+                
                 if (ctx) {
-                    ctx.drawImage(img, 0, 0);
+                    // Create circular clipping path
+                    ctx.beginPath();
+                    ctx.arc(size/2, size/2, size/2, 0, Math.PI * 2);
+                    ctx.closePath();
+                    ctx.clip();
+
+                    // Calculate dimensions to maintain aspect ratio
+                    const aspectRatio = img.width / img.height;
+                    let drawWidth = size;
+                    let drawHeight = size;
+                    let offsetX = 0;
+                    let offsetY = 0;
+
+                    if (aspectRatio > 1) {
+                        // Image is wider than tall
+                        drawWidth = size * aspectRatio;
+                        offsetX = -(drawWidth - size) / 2;
+                    } else {
+                        // Image is taller than wide
+                        drawHeight = size / aspectRatio;
+                        offsetY = -(drawHeight - size) / 2;
+                    }
+
+                    // Draw the image within the circular clip
+                    ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+
+                    // Optional: Add a circle border
+                    ctx.beginPath();
+                    ctx.arc(size/2, size/2, size/2 - 1, 0, Math.PI * 2);
+                    ctx.strokeStyle = '#22A34A'; // Match the primary color
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+
                     resolve(canvas.toDataURL('image/png'));
                 } else {
                     reject(new Error('Failed to get canvas context'));
@@ -151,6 +186,7 @@ export default function Questions({ questions }: { questions: { id: number; name
             img.src = url;
         });
     };
+    
 
     const generatePDF = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -172,7 +208,7 @@ export default function Questions({ questions }: { questions: { id: number; name
             doc.setFontSize(60);
             doc.setTextColor(...watermarkColor);
             doc.setFont("helvetica", "bold");
-            doc.text("TELUGU TECHPAD", pageWidth/1.5, pageHeight/1.5, {
+            doc.text("Telugu TechPad", pageWidth/1.5, pageHeight/1.5, {
                 align: 'center',
                 angle: 45
             });
@@ -185,19 +221,21 @@ export default function Questions({ questions }: { questions: { id: number; name
             try {
                 const logoUrl = 'https://i.postimg.cc/2y1sBtJz/Whats-App-Image-2025-01-27-at-14-03-43-c22d23b7.jpg';
                 const base64Image = await loadImage(logoUrl);
-                doc.addImage(base64Image, 'PNG', 10, 5, 15, 15);
+                // Adjust positioning for circular image
+                doc.addImage(base64Image, 'PNG', 8, 3, 19, 19); // Slightly adjusted dimensions for better circular appearance
             } catch (error) {
                 console.error('Error adding logo:', error);
+                // Fallback circular design
                 doc.setFillColor(...primaryColor);
                 doc.circle(17.5, 12.5, 7.5, 'F');
                 doc.setFillColor(...secondaryColor);
                 doc.circle(17.5, 12.5, 5.5, 'F');
             }
             
-            doc.setTextColor(0,0,0);
+            doc.setTextColor(0, 0, 0);
             doc.setFontSize(16);
             doc.setFont("helvetica", "bold");
-            doc.text("TELUGU TECHPAD", 35, 14);
+            doc.text("Telugu TechPad", 35, 14);
             
             doc.setFontSize(10);
             doc.setFont("helvetica", "normal");
@@ -263,8 +301,9 @@ export default function Questions({ questions }: { questions: { id: number; name
                 
                 doc.setFontSize(11);
                 doc.setTextColor(0, 0, 0);
-                doc.text(`${index + 1}. ${question}`, margin, yPos);
-                yPos += 6;
+                const splitQuestion = doc.splitTextToSize(`${index + 1}. ${question}`, pageWidth - (2 * margin));
+                doc.text(splitQuestion, margin, yPos);
+                yPos += splitQuestion.length * 6;
                 
                 doc.setFillColor(...primaryColor);
                 doc.roundedRect(margin, yPos - 4, 35, 6, 1, 1, 'F');
@@ -378,7 +417,7 @@ export default function Questions({ questions }: { questions: { id: number; name
     }
 
     return (
-        <form onSubmit={generatePDF} className="max-w-4xl mx-auto space-y-10">
+        <form onSubmit={generatePDF} className="max-w-4xl mx-auto space-y-10 p-4">
             <div className="space-y-2">
                 <label className="font-semibold text-primary">Channel Name</label>
                 <Input 
@@ -391,7 +430,11 @@ export default function Questions({ questions }: { questions: { id: number; name
             </div>
             {questions.map((item, index) => (
                 <div key={index} className="space-y-4">
-                    <label className="font-semibold"><span>{index + 1} . </span>{item.name}</label>
+                    {/* Added proper text wrapping for question labels */}
+                    <label className="font-semibold block whitespace-normal break-words">
+                        <span>{index + 1} . </span>
+                        {item.name}
+                    </label>
                     <RadioGroup defaultValue="0" name='value' className="flex gap-4 flex-wrap">
                         {percentageOptions.map((option) => (
                             <div key={option.value} className="flex items-center space-x-2">
@@ -400,36 +443,39 @@ export default function Questions({ questions }: { questions: { id: number; name
                                     value={option.value.toString()}
                                     id={`${item.name}-${option.value}`}
                                 />
-                                <Label htmlFor={`${item.name}-${option.value}`}>
+                                <Label 
+                                    htmlFor={`${item.name}-${option.value}`}
+                                    className="whitespace-nowrap"
+                                >
                                     {option.label}
                                 </Label>
                             </div>
                         ))}
                     </RadioGroup>
 
-                    <div className="mt-4 w-full h-fit">
+                    <div className="mt-4 w-full">
                         {visable[item.name] === 100 && (
-                            <p className="text-primary font-semibold">
+                            <p className="text-primary font-semibold break-words">
                                 Exceptional work! Your content stands out with top-notch quality.
                             </p>
                         )}
                         {visable[item.name] === 75 && (
-                            <p className="text-blue-700 font-semibold">
+                            <p className="text-blue-700 font-semibold break-words">
                                 Great job! Your content is impressive and well-received.
                             </p>
                         )}
                         {visable[item.name] === 50 && (
-                            <p className="text-yellow-500 font-semibold">
+                            <p className="text-yellow-500 font-semibold break-words">
                                 Decent effort! Your content is satisfactory but has room for improvement.
                             </p>
                         )}
                         {visable[item.name] === 25 && (
-                            <p className="text-orange-500 font-semibold">
+                            <p className="text-orange-500 font-semibold break-words">
                                 Fair attempt! Consider enhancing certain aspects to make your content shine.
                             </p>
                         )}
                         {visable[item.name] === 10 && (
-                            <p className="text-red-600 font-semibold">
+                            <p className="text-red-600 font-semibold break-words">
                                 Needs work! Focus on improving critical areas to elevate your content quality.
                             </p>
                         )}
@@ -442,13 +488,13 @@ export default function Questions({ questions }: { questions: { id: number; name
                 <Label id='comments'>Additional Comments</Label>
                 <Textarea 
                     name='comments' 
-                    className='bg-muted'
+                    className='bg-muted min-h-[100px]'
                     value={comments}
                     onChange={handleCommentsChange}
                     placeholder="Enter any additional observations or recommendations..."
                 />
             </div>
-            <Button  type="submit" className="w-full md:w-auto">
+            <Button type="submit" className="w-full md:w-auto">
                 Generate Professional Review
             </Button>
         </form>

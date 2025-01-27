@@ -4,11 +4,17 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { cache } from "react";
+import { toast } from "sonner";
 
 export const AddQuestionFormData = async(formData : FormData) => {
     const questions = formData.getAll('question') as string[]
     
     for (const question of questions) {
+        if(question.trim().length>255) {
+            toast.error("Question must be less than 255 characters");
+
+        }
+
         if (question.trim()) {
             await prisma.question.create({
                 data: {
