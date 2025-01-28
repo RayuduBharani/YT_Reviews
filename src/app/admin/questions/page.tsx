@@ -1,13 +1,15 @@
-import Questions from "@/components/Questions";
-import { ModeToggle } from "@/components/Toggle";
-import { FindOptions, FindQuestion } from "./actions/actions";
+import { ModeToggle } from '@/components/Toggle'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
+import DeleteQuestions from '@/components/DeleteQuestions'
+import { FindQuestion } from '@/app/actions/actions'
+import { Toaster } from 'sonner'
 
-export default async function Home() {
-    const questions = await FindQuestion()
-    const options = await FindOptions()
+export default async function AdminQuestionsView() {
+    const questionsData = await FindQuestion()
     return (
-        <div className="mx-auto py-8 px-4">
-            <div className="max-w-4xl h-fit flex justify-between mx-auto">
+        <div className='w-full max-w-4xl h-full mx-auto py-8 px-4'>
+            <div className="h-fit flex justify-between mx-auto">
                 <div className="flex items-center justify-center gap-3 mb-10">
                     <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="33" height="33" viewBox="0 0 48 48">
                         <linearGradient
@@ -40,9 +42,34 @@ export default async function Home() {
                     </svg>
                     <h1 className="font-bold sm:text-2xl">YouTube Channel Review</h1>
                 </div>
+
                 <ModeToggle />
             </div>
-           <Questions questions={questions} options={options}/>
+
+            <div className='w-full h-fit space-y-6'>
+                <div className='flex items-center justify-between'>
+                    <p className='text-lg text-primary font-bold'>All Questions</p>
+                    <Button asChild><Link href={"/admin/questions/add"}>Add Question</Link></Button>
+                </div>
+                {questionsData.length != 0 ?
+                    questionsData.map((question, index) => (
+                        <div key={index} className='group p-4 sm:p-6 h-fit overflow-hidden rounded-lg border border-border hover:border-primary transition-all duration-300 shadow-sm'>
+                            <div className='flex w-full h-fit items-start justify-between gap-2 sm:gap-4'>
+                                <div className='flex gap-2 sm:gap-4 min-w-0 flex-1'>
+                                    <span className='text-red-500 font-bold flex-shrink-0 min-w-[20px] sm:min-w-[24px] text-sm sm:text-base'>{index + 1}.</span>
+                                    <p className='text-xs sm:text-sm font-semibold text-foreground/70 truncate min-w-0'>{question.name}</p>
+                                </div>
+                                <button className='flex-shrink-0 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200 hover:scale-110'>
+                                    <DeleteQuestions id={question.id} />
+                                </button>
+                            </div>
+                        </div>
+                    )) :
+                    <p className='text-center font-bold animate-pulse'>No questions found</p>
+                }
+            </div>
         </div>
-    );
+    )
 }
+
+

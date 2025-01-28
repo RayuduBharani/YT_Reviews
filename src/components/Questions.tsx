@@ -10,15 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Chart, ChartConfiguration } from 'chart.js/auto';
 import html2canvas from 'html2canvas';
 
-export default function Questions({ questions }: { questions: { id: number; name: string }[] }) {
-    const percentageOptions = [
-        { value: 100, label: "100%" },
-        { value: 75, label: "75%" },
-        { value: 50, label: "50%" },
-        { value: 25, label: "25%" },
-        { value: 10, label: "10%" },
-        { value: 0, label: "None" },
-    ];
+export default function Questions({ questions, options }: { questions: { id: number; name: string }[], options: { id: number; option: string; percentage: number }[] }) {
+    console.log(options)
 
     const [visable, setVisable] = useState<{ [key: string]: number }>({});
     const [comments, setComments] = useState<string>('');
@@ -221,11 +214,10 @@ export default function Questions({ questions }: { questions: { id: number; name
             try {
                 const logoUrl = 'https://i.postimg.cc/2y1sBtJz/Whats-App-Image-2025-01-27-at-14-03-43-c22d23b7.jpg';
                 const base64Image = await loadImage(logoUrl);
-                // Adjust positioning for circular image
                 doc.addImage(base64Image, 'PNG', 8, 3, 19, 19); // Slightly adjusted dimensions for better circular appearance
             } catch (error) {
                 console.error('Error adding logo:', error);
-                // Fallback circular design
+
                 doc.setFillColor(...primaryColor);
                 doc.circle(17.5, 12.5, 7.5, 'F');
                 doc.setFillColor(...secondaryColor);
@@ -312,11 +304,12 @@ export default function Questions({ questions }: { questions: { id: number; name
                 doc.setFontSize(9);
                 doc.text(`${value}%`, margin + 5, yPos);
                 
-                const feedback = getFeedbackText(value as number, question);
-                if (feedback) {
+                // Find the matching option text
+                const optionText = options.find(opt => opt.percentage === value)?.option;
+                if (optionText) {
                     doc.setFontSize(9);
                     doc.setTextColor(80, 80, 80);
-                    const splitFeedback = doc.splitTextToSize(feedback, pageWidth - (2 * margin) - 10);
+                    const splitFeedback = doc.splitTextToSize(optionText, pageWidth - (2 * margin) - 10);
                     doc.text(splitFeedback, margin + 45, yPos);
                     yPos += (splitFeedback.length * 5) + 8;
                 }
@@ -430,53 +423,38 @@ export default function Questions({ questions }: { questions: { id: number; name
             </div>
             {questions.map((item, index) => (
                 <div key={index} className="space-y-4">
-                    {/* Added proper text wrapping for question labels */}
                     <label className="font-semibold block whitespace-normal break-words">
                         <span>{index + 1} . </span>
                         {item.name}
                     </label>
                     <RadioGroup defaultValue="0" name='value' className="flex gap-4 flex-wrap">
-                        {percentageOptions.map((option) => (
-                            <div key={option.value} className="flex items-center space-x-2">
+                        {options.map((option) => (
+                            <div key={option.id} className="flex items-center space-x-2">
                                 <RadioGroupItem
-                                    onClick={() => handleGetReview(item.name, option.value)}
-                                    value={option.value.toString()}
-                                    id={`${item.name}-${option.value}`}
+                                    onClick={() => handleGetReview(item.name, option.percentage)}
+                                    value={option.percentage.toString()}
+                                    id={`${item.name}-${option.percentage}`}
                                 />
                                 <Label 
-                                    htmlFor={`${item.name}-${option.value}`}
+                                    htmlFor={`${item.name}-${option.percentage}`}
                                     className="whitespace-nowrap"
                                 >
-                                    {option.label}
+                                    {`${option.percentage}%`}
                                 </Label>
                             </div>
                         ))}
                     </RadioGroup>
 
                     <div className="mt-4 w-full">
-                        {visable[item.name] === 100 && (
-                            <p className="text-primary font-semibold break-words">
-                                Exceptional work! Your content stands out with top-notch quality.
-                            </p>
-                        )}
-                        {visable[item.name] === 75 && (
-                            <p className="text-blue-700 font-semibold break-words">
-                                Great job! Your content is impressive and well-received.
-                            </p>
-                        )}
-                        {visable[item.name] === 50 && (
-                            <p className="text-yellow-500 font-semibold break-words">
-                                Decent effort! Your content is satisfactory but has room for improvement.
-                            </p>
-                        )}
-                        {visable[item.name] === 25 && (
-                            <p className="text-orange-500 font-semibold break-words">
-                                Fair attempt! Consider enhancing certain aspects to make your content shine.
-                            </p>
-                        )}
-                        {visable[item.name] === 10 && (
-                            <p className="text-red-600 font-semibold break-words">
-                                Needs work! Focus on improving critical areas to elevate your content quality.
+                        {visable[item.name] && (
+                            <p className={`font-semibold break-words ${
+                                visable[item.name] >= 90 ? "text-primary" :
+                                visable[item.name] >= 70 ? "text-blue-700" :
+                                visable[item.name] >= 40 ? "text-yellow-500" :
+                                visable[item.name] >= 20 ? "text-orange-500" : "text-red-600"
+                            }`}>
+                                {options.find(opt => opt.percentage === visable[item.name])?.option || 
+                                "Please select an option"}
                             </p>
                         )}
                     </div>

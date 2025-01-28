@@ -1,13 +1,13 @@
-import Questions from "@/components/Questions";
-import { ModeToggle } from "@/components/Toggle";
-import { FindOptions, FindQuestion } from "./actions/actions";
+import React from 'react'
+import { ModeToggle } from '@/components/Toggle'
+import OptionsComponent from '@/components/OptionsComp'
+import { FindOptions } from '@/app/actions/actions'
 
-export default async function Home() {
-    const questions = await FindQuestion()
+export default async function Options() {
     const options = await FindOptions()
     return (
-        <div className="mx-auto py-8 px-4">
-            <div className="max-w-4xl h-fit flex justify-between mx-auto">
+        <div className='w-full max-w-4xl h-full mx-auto py-8 px-4'>
+            <div className="h-fit flex justify-between mx-auto">
                 <div className="flex items-center justify-center gap-3 mb-10">
                     <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="33" height="33" viewBox="0 0 48 48">
                         <linearGradient
@@ -40,9 +40,10 @@ export default async function Home() {
                     </svg>
                     <h1 className="font-bold sm:text-2xl">YouTube Channel Review</h1>
                 </div>
+
                 <ModeToggle />
             </div>
-           <Questions questions={questions} options={options}/>
+            <OptionsComponent/>
         </div>
-    );
+    )
 }
