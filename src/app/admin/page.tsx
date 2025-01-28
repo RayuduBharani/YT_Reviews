@@ -35,18 +35,18 @@ export default async function Admin() {
                             d="M19,31.568V16.433c0-0.743,0.828-1.187,1.447-0.774l11.352,7.568c0.553,0.368,0.553,1.18,0,1.549	l-11.352,7.568C19.828,32.755,19,32.312,19,31.568z"
                         ></path>
                     </svg>
-                    <h1 className="font-bold sm:text-2xl">YouTube Channel Review</h1>
+                    <h1 className="font-bold sm:text-2xl"><Link href={"/"}>YouTube Channel Review</Link></h1>
                 </div>
 
                 <ModeToggle />
             </div>
 
-            <div className='w-full h-full flex justify-between gap-10 mt-10'>
-                <div className='w-[50%] h-32 bg-muted rounded-lg px-10 py-5 flex flex-col justify-between'>
+            <div className='w-full h-full gap-10 mt-10 grid grid-cols-1 md:grid-cols-2 sm:grid-cols-1'>
+                <div className='w-full h-32 bg-muted rounded-lg px-10 py-5 flex flex-col justify-between'>
                     <p className='font-bold text-lg '>Questions</p>
                     <Button asChild><Link href={"/admin/questions"}>View Questions</Link></Button>
                 </div>
-                <div className='w-[50%] h-32 bg-muted rounded-lg px-10 py-5 flex flex-col justify-between'>
+                <div className='w-full h-32 bg-muted rounded-lg px-10 py-5 flex flex-col justify-between'>
                     <p className='font-bold text-lg '>Options</p>
                     <Button asChild><Link href={"/admin/options"}>View Options</Link></Button>
                 </div>

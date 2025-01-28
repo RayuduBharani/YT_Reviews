@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Trash } from 'lucide-react'
 import { AddQuestionFormData } from '@/app/actions/actions'
 import { useState } from 'react'
+import Link from 'next/link'
 
 export default function AddQuestion() {
     const [questions, setQuestions] = useState<string[]>([''])
@@ -70,7 +71,7 @@ export default function AddQuestion() {
                             d="M19,31.568V16.433c0-0.743,0.828-1.187,1.447-0.774l11.352,7.568c0.553,0.368,0.553,1.18,0,1.549	l-11.352,7.568C19.828,32.755,19,32.312,19,31.568z"
                         ></path>
                     </svg>
-                    <h1 className="font-bold sm:text-2xl">YouTube Channel Review</h1>
+                    <h1 className="font-bold sm:text-2xl"><Link href={"/"}>YouTube Channel Review</Link></h1>
                 </div>
 
                 <ModeToggle />

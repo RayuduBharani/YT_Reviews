@@ -11,7 +11,6 @@ import { Chart, ChartConfiguration } from 'chart.js/auto';
 import html2canvas from 'html2canvas';
 
 export default function Questions({ questions, options }: { questions: { id: number; name: string }[], options: { id: number; option: string; percentage: number }[] }) {
-    console.log(options)
 
     const [visable, setVisable] = useState<{ [key: string]: number }>({});
     const [comments, setComments] = useState<string>('');
@@ -306,13 +305,13 @@ export default function Questions({ questions, options }: { questions: { id: num
                 
                 // Find the matching option text
                 const optionText = options.find(opt => opt.percentage === value)?.option;
-                if (optionText) {
-                    doc.setFontSize(9);
-                    doc.setTextColor(80, 80, 80);
-                    const splitFeedback = doc.splitTextToSize(optionText, pageWidth - (2 * margin) - 10);
-                    doc.text(splitFeedback, margin + 45, yPos);
-                    yPos += (splitFeedback.length * 5) + 8;
-                }
+if (optionText) {
+    doc.setFontSize(9);
+    doc.setTextColor(80, 80, 80);
+    const splitFeedback = doc.splitTextToSize(optionText, pageWidth - (2 * margin) - 10);
+    doc.text(splitFeedback, margin + 45, yPos);
+    yPos += (splitFeedback.length * 5) + 8;
+}
             });
         }
 
