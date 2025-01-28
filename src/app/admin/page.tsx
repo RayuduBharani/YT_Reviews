@@ -52,7 +52,7 @@ export default async function AdminQuestionsView() {
                 </div>
                 {questionsData.length != 0 ?
                     questionsData.map((question, index) => (
-                        <div key={index} className='group p-4 sm:p-6 h-fit overflow-hidden rounded-lg border border-border hover:border-primary transition-all duration-300 shadow-sm'>
+                        <div key={index} className='group p-4 mt-5 sm:p-6 h-fit overflow-hidden rounded-lg border border-border hover:border-primary transition-all duration-300 shadow-sm'>
                             <div className='flex w-full h-fit items-start justify-between gap-2 sm:gap-4'>
                                 <div className='flex gap-2 sm:gap-4 min-w-0 flex-1'>
                                     <span className='text-red-500 font-bold flex-shrink-0 min-w-[20px] sm:min-w-[24px] text-sm sm:text-base'>{index + 1}.</span>

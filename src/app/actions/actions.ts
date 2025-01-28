@@ -32,7 +32,6 @@ export const AddQuestionFormData = async(formData: FormData) => {
         redirect("/admin")
     } catch (error) {
         console.error("Error adding question:", error)
-        throw error
     }
 }
 
@@ -49,7 +48,6 @@ export const deleteQuestion = async(id: number) => {
         revalidatePath("/admin")
     } catch (error) {
         console.error("Error deleting question:", error)
-        throw error
     }
 }
 
