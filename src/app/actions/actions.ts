@@ -63,18 +63,26 @@ export const AddQuestionFormData = async(formData: FormData) => {
 }
 
 export const deleteQuestion = async(id: number) => {
+    if (!id || typeof id !== 'number') {
+        throw new Error('Invalid question ID');
+    }
+
     try {
-        await prisma.$transaction([
-            prisma.option.deleteMany({
-                where: { questionId: id }
-            }),
-            prisma.question.delete({
-                where: { id }
-            })
-        ])
-        revalidatePath("/admin")
+        const deleteOptions = prisma.option.deleteMany({
+            where: { questionId: id }
+        });
+
+        const deleteQuestion = prisma.question.delete({
+            where: { id }
+        });
+
+        await prisma.$transaction([deleteOptions, deleteQuestion]);
+        
+        revalidatePath("/admin");
+        return { success: true };
     } catch (error) {
-        console.error("Error deleting question:", error)
+        console.error("Error deleting question:", error instanceof Error ? error.message : 'Unknown error');
+        return { success: false, error: error instanceof Error ? error.message : 'Failed to delete question' };
     }
 }
 
