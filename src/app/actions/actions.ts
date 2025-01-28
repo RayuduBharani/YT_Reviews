@@ -52,10 +52,15 @@ export const deleteQuestion = async(id: number) => {
 }
 
 export const FindQuestion = cache(async() => {
-    const questions = await prisma.question.findMany({
-        include: {
-            options: true
-        }
-    });
-    return questions
+    try {
+        const questions = await prisma.question.findMany({
+            include: {
+                options: true
+            }
+        });
+        return questions;
+    } catch (error) {
+        console.error("Database query failed:", error);
+        return [];
+    }
 })
