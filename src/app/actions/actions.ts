@@ -9,28 +9,57 @@ export const AddQuestionFormData = async(formData: FormData) => {
     try {
         const questionsData = JSON.parse(formData.get('questionsData') as string);
         
+        if (!Array.isArray(questionsData)) {
+            throw new Error("Invalid questions data format");
+        }
+
         for (const qData of questionsData) {
-            if(qData.question.trim().length > 300) {
+            // Validate question
+            if (!qData.question || typeof qData.question !== 'string') {
+                throw new Error("Question is required and must be a string");
+            }
+
+            if (qData.question.trim().length > 300) {
                 throw new Error("Question must be less than 300 characters");
             }
 
+            // Validate options
+            if (!Array.isArray(qData.options) || qData.options.length === 0) {
+                throw new Error("Each question must have at least one option");
+            }
+
             if (qData.question.trim()) {
-                await prisma.question.create({
+                const createdQuestion = await prisma.question.create({
                     data: {
                         name: qData.question.trim(),
                         options: {
-                            create: qData.options.map((opt: { text: string, percentage: number }) => ({
-                                text: opt.text.trim(),
-                                percentage: opt.percentage
-                            }))
+                            create: qData.options.map((opt: { text: string, percentage: number }) => {
+                                if (!opt.text || typeof opt.text !== 'string') {
+                                    throw new Error("Option text is required and must be a string");
+                                }
+                                if (typeof opt.percentage !== 'number') {
+                                    throw new Error("Option percentage must be a number");
+                                }
+                                return {
+                                    text: opt.text.trim(),
+                                    percentage: opt.percentage
+                                };
+                            })
                         }
                     }
-                })
+                });
+
+                if (!createdQuestion) {
+                    throw new Error("Failed to create question");
+                }
             }
         }
-        redirect("/admin")
+        revalidatePath("/admin");
+        redirect("/admin"); // Add redirect here after successful creation
+        return { success: true, message: "Questions added successfully" };
     } catch (error) {
-        console.error("Error adding question:", error)
+        console.error("Error adding question:", error);
+        throw error; // Re-throw the error to handle it in the UI
     }
 }
 
