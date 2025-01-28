@@ -2,8 +2,13 @@ import Questions from "@/components/Questions"
 import { ModeToggle } from "@/components/Toggle"
 import { FindQuestion } from "./actions/actions"
 
+export const revalidate = 0;
+export const dynamic = 'force-dynamic';
+
 export default async function Home() {
     const questions = await FindQuestion()
+    // Remove this console.log in production
+    // console.log(questions)
     return (
         <div className="mx-auto py-8 px-4">
             <div className="max-w-4xl h-fit flex justify-between mx-auto">

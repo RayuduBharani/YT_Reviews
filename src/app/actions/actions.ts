@@ -86,16 +86,11 @@ export const deleteQuestion = async(id: number) => {
     }
 }
 
-export const FindQuestion = cache(async() => {
-    try {
-        const questions = await prisma.question.findMany({
-            include: {
-                options: true
-            }
-        });
-        return questions;
-    } catch (error) {
-        console.error("Database query failed:", error);
-        return [];
-    }
-})
+export async function FindQuestion() {
+    const questions = await prisma.question.findMany({
+        include: {
+            options: true
+        }
+    });
+    return questions;
+}
