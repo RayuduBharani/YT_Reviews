@@ -8,8 +8,9 @@ import { Trash } from 'lucide-react'
 import { AddQuestionFormData } from '@/app/actions/actions'
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation';
 
-export default function AddQuestion() {
+export default function AddQuestionPage() {
     const [questions, setQuestions] = useState<Array<{
         question: string;
         options: Array<{ text: string; percentage: number }>
@@ -57,16 +58,26 @@ export default function AddQuestion() {
         q.options.every(opt => opt.text.trim() !== '')
     );
 
+    const router = useRouter();
+    
+    const handleSubmit = async (formData: FormData) => {
+        const questionsData = questions.map(q => ({
+            question: q.question,
+            options: q.options
+        }));
+        formData.append('questionsData', JSON.stringify(questionsData));
+        const result = await AddQuestionFormData(formData);
+        if (result.success) {
+            router.push('/admin');
+        } else {
+            // Handle error case
+            console.error(result.error);
+        }
+    };
+
     return (
         <form
-            action={(formData) => {
-                const questionsData = questions.map(q => ({
-                    question: q.question,
-                    options: q.options
-                }));
-                formData.append('questionsData', JSON.stringify(questionsData));
-                return AddQuestionFormData(formData);
-            }}
+            action={handleSubmit}
             className="w-full max-w-4xl h-full mx-auto py-6 px-4"
         >
             <div className="h-fit flex justify-between mx-auto">
@@ -154,14 +165,13 @@ export default function AddQuestion() {
                 ))}
             </div>
 
-            <div className="flex gap-4 mt-8 max-sm:space-y-3 max-sm:flex-col max-sm:gap-0">
+            <div className="flex gap-4 mt-8 max-sm:space-y-3 max-sm:flex-col max-sm:gap-0"></div>
                 <Button type="button" variant="outline" onClick={handleAddQuestion}>
                     Add New Question
                 </Button>
                 <Button type="submit" disabled={!isFormValid}>
                     Save Questions
                 </Button>
-            </div>
         </form>
     )
 }

@@ -55,11 +55,10 @@ export const AddQuestionFormData = async(formData: FormData) => {
             }
         }
         revalidatePath("/admin");
-        redirect("/admin"); // Add redirect here after successful creation
-        return { success: true, message: "Questions added successfully" };
+        return { success: true };  // Return success status instead of redirect
     } catch (error) {
         console.error("Error adding question:", error);
-        throw error; // Re-throw the error to handle it in the UI
+        return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
 }
 
