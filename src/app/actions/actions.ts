@@ -28,7 +28,6 @@ export const AddQuestionFormData = async(formData: FormData) => {
                 })
             }
         }
-        revalidatePath("/admin")
         redirect("/admin")
     } catch (error) {
         console.error("Error adding question:", error)
