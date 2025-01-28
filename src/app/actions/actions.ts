@@ -36,6 +36,18 @@ export const AddQuestionFormData = async(formData: FormData) => {
     }
 }
 
+export const deleteOptions = async(id: number) => {
+    try {
+        await prisma.option.delete({
+            where: { id }
+        });
+        revalidatePath("/admin")
+    } catch (error) {
+        console.error("Error deleting option:", error)
+        throw error
+    }
+}
+
 export const deleteQuestion = async(id: number) => {
     try {
         await prisma.$transaction([
