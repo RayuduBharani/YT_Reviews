@@ -7,11 +7,22 @@ import { Textarea } from './ui/textarea';
 import { Button } from './ui/button';
 import jsPDF from 'jspdf';
 import { Input } from "@/components/ui/input";
-import { Chart, ChartConfiguration } from 'chart.js/auto';
+import { Chart } from 'chart.js/auto';
 import html2canvas from 'html2canvas';
 
-export default function Questions({ questions, options }: { questions: { id: number; name: string }[], options: { id: number; option: string; percentage: number }[] }) {
+interface QuestionProps {
+    questions: {
+        id: number;
+        name: string;
+        options: {
+            id: number;
+            text: string;
+            percentage: number;
+        }[];
+    }[];
+}
 
+export default function Questions({ questions }: QuestionProps) {
     const [visable, setVisable] = useState<{ [key: string]: number }>({});
     const [comments, setComments] = useState<string>('');
     const [channelName, setChannelName] = useState('');
@@ -20,7 +31,7 @@ export default function Questions({ questions, options }: { questions: { id: num
         comments: string;
     }>({ responses: {}, comments: '' });
 
-    function handleGetReview(questionName: string, value: number) {
+    function handleGetReview(questionName: string, value: number, optionText: string) {
         const newVisable = {
             ...visable,
             [questionName]: value
@@ -31,43 +42,6 @@ export default function Questions({ questions, options }: { questions: { id: num
             responses: newVisable
         }));
     }
-
-    function handleCommentsChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
-        const newComments = e.target.value;
-        setComments(newComments);
-        setFormData(prev => ({
-            ...prev,
-            comments: newComments
-        }));
-    }
-
-    const getFeedbackText = (value: number, question: string) => {
-        const feedbacks: { [key: string]: { [key: number]: string } } = {
-            "Content Quality": {
-                100: "Exceptional content quality with excellent structure and engagement.",
-                75: "Very good content quality, well-structured and engaging.",
-                50: "Good content quality, could improve structure and engagement.",
-                25: "Content quality needs work on structure and engagement.",
-                10: "Content quality needs significant improvement in structure and engagement."
-            },
-            "Production Value": {
-                100: "Outstanding production value with professional editing and visuals.",
-                75: "High production value with good editing and visual elements.",
-                50: "Decent production value, consider enhancing editing and visual elements.",
-                25: "Basic production value, needs improvement in editing and visuals.",
-                10: "Production value requires major improvements."
-            },
-            "default": {
-                100: "Exceptional performance in this area!",
-                75: "Very good performance with minor room for improvement.",
-                50: "Good performance with some areas needing attention.",
-                25: "Needs significant improvement in this area.",
-                10: "Requires immediate attention and major improvements."
-            }
-        };
-
-        return feedbacks[question]?.[value] || feedbacks["default"][value];
-    };
 
     const createPieChart = async (rating: number, primaryColor: [number, number, number]) => {
         const chartContainer = document.createElement('div');
@@ -108,7 +82,7 @@ export default function Questions({ questions, options }: { questions: { id: num
                 },
                 animation: false
             }
-        } as ChartConfiguration);
+        });
 
         await new Promise(resolve => setTimeout(resolve, 100));
 
@@ -128,7 +102,6 @@ export default function Questions({ questions, options }: { questions: { id: num
             const img = new Image();
             img.crossOrigin = 'anonymous';
             img.onload = () => {
-                // Create a canvas with fixed dimensions for the circular image
                 const canvas = document.createElement('canvas');
                 const size = Math.min(img.width, img.height);
                 canvas.width = size;
@@ -136,13 +109,11 @@ export default function Questions({ questions, options }: { questions: { id: num
                 const ctx = canvas.getContext('2d');
                 
                 if (ctx) {
-                    // Create circular clipping path
                     ctx.beginPath();
                     ctx.arc(size/2, size/2, size/2, 0, Math.PI * 2);
                     ctx.closePath();
                     ctx.clip();
 
-                    // Calculate dimensions to maintain aspect ratio
                     const aspectRatio = img.width / img.height;
                     let drawWidth = size;
                     let drawHeight = size;
@@ -150,22 +121,18 @@ export default function Questions({ questions, options }: { questions: { id: num
                     let offsetY = 0;
 
                     if (aspectRatio > 1) {
-                        // Image is wider than tall
                         drawWidth = size * aspectRatio;
                         offsetX = -(drawWidth - size) / 2;
                     } else {
-                        // Image is taller than wide
                         drawHeight = size / aspectRatio;
                         offsetY = -(drawHeight - size) / 2;
                     }
 
-                    // Draw the image within the circular clip
                     ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
 
-                    // Optional: Add a circle border
                     ctx.beginPath();
                     ctx.arc(size/2, size/2, size/2 - 1, 0, Math.PI * 2);
-                    ctx.strokeStyle = '#22A34A'; // Match the primary color
+                    ctx.strokeStyle = '#22A34A';
                     ctx.lineWidth = 2;
                     ctx.stroke();
 
@@ -178,7 +145,6 @@ export default function Questions({ questions, options }: { questions: { id: num
             img.src = url;
         });
     };
-    
 
     const generatePDF = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -213,7 +179,7 @@ export default function Questions({ questions, options }: { questions: { id: num
             try {
                 const logoUrl = 'https://i.postimg.cc/2y1sBtJz/Whats-App-Image-2025-01-27-at-14-03-43-c22d23b7.jpg';
                 const base64Image = await loadImage(logoUrl);
-                doc.addImage(base64Image, 'PNG', 8, 3, 19, 19); // Slightly adjusted dimensions for better circular appearance
+                doc.addImage(base64Image, 'PNG', 8, 3, 19, 19);
             } catch (error) {
                 console.error('Error adding logo:', error);
 
@@ -303,15 +269,14 @@ export default function Questions({ questions, options }: { questions: { id: num
                 doc.setFontSize(9);
                 doc.text(`${value}%`, margin + 5, yPos);
                 
-                // Find the matching option text
-                const optionText = options.find(opt => opt.percentage === value)?.option;
-if (optionText) {
-    doc.setFontSize(9);
-    doc.setTextColor(80, 80, 80);
-    const splitFeedback = doc.splitTextToSize(optionText, pageWidth - (2 * margin) - 10);
-    doc.text(splitFeedback, margin + 45, yPos);
-    yPos += (splitFeedback.length * 5) + 8;
-}
+                const optionText = questions.find(q => q.name === question)?.options.find(opt => opt.percentage === value)?.text;
+                if (optionText) {
+                    doc.setFontSize(9);
+                    doc.setTextColor(80, 80, 80);
+                    const splitFeedback = doc.splitTextToSize(optionText, pageWidth - (2 * margin) - 10);
+                    doc.text(splitFeedback, margin + 45, yPos);
+                    yPos += (splitFeedback.length * 5) + 8;
+                }
             });
         }
 
@@ -427,10 +392,10 @@ if (optionText) {
                         {item.name}
                     </label>
                     <RadioGroup defaultValue="0" name='value' className="flex gap-4 flex-wrap">
-                        {options.map((option) => (
+                        {item.options.map((option) => (
                             <div key={option.id} className="flex items-center space-x-2">
                                 <RadioGroupItem
-                                    onClick={() => handleGetReview(item.name, option.percentage)}
+                                    onClick={() => handleGetReview(item.name, option.percentage, option.text)}
                                     value={option.percentage.toString()}
                                     id={`${item.name}-${option.percentage}`}
                                 />
@@ -452,7 +417,7 @@ if (optionText) {
                                 visable[item.name] >= 40 ? "text-yellow-500" :
                                 visable[item.name] >= 20 ? "text-orange-500" : "text-red-600"
                             }`}>
-                                {options.find(opt => opt.percentage === visable[item.name])?.option || 
+                                {item.options.find(opt => opt.percentage === visable[item.name])?.text || 
                                 "Please select an option"}
                             </p>
                         )}
@@ -465,9 +430,15 @@ if (optionText) {
                 <Label id='comments'>Additional Comments</Label>
                 <Textarea 
                     name='comments' 
-                    className='bg-muted min-h-[100px]'
+                    className='bg-muted min-h-[250px]'
                     value={comments}
-                    onChange={handleCommentsChange}
+                    onChange={(e) => {
+                        setComments(e.target.value);
+                        setFormData(prev => ({
+                            ...prev,
+                            comments: e.target.value
+                        }));
+                    }}
                     placeholder="Enter any additional observations or recommendations..."
                 />
             </div>

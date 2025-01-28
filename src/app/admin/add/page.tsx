@@ -8,12 +8,32 @@ import { Trash } from 'lucide-react'
 import { AddQuestionFormData } from '@/app/actions/actions'
 import { useState } from 'react'
 import Link from 'next/link'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function AddQuestion() {
-    const [questions, setQuestions] = useState<string[]>([''])
+    const [questions, setQuestions] = useState<Array<{
+        question: string;
+        options: Array<{ text: string; percentage: number }>
+    }>>([{
+        question: '',
+        options: [
+            { text: '', percentage: 100 },
+            { text: '', percentage: 75 },
+            { text: '', percentage: 50 },
+            { text: '', percentage: 10 }
+        ]
+    }])
 
     const handleAddQuestion = () => {
-        setQuestions([...questions, ''])
+        setQuestions([...questions, {
+            question: '',
+            options: [
+                { text: '', percentage: 100 },
+                { text: '', percentage: 75 },
+                { text: '', percentage: 50 },
+                { text: '', percentage: 10 }
+            ]
+        }])
     }
 
     const handleDeleteQuestion = (index: number) => {
@@ -23,13 +43,31 @@ export default function AddQuestion() {
 
     const handleQuestionChange = (index: number, value: string) => {
         const newQuestions = [...questions]
-        newQuestions[index] = value
+        newQuestions[index].question = value
         setQuestions(newQuestions)
     }
 
+    const handleOptionChange = (questionIndex: number, optionIndex: number, value: string) => {
+        const newQuestions = [...questions]
+        newQuestions[questionIndex].options[optionIndex].text = value
+        setQuestions(newQuestions)
+    }
+
+    const isFormValid = questions.every(q => 
+        q.question.trim() !== '' && 
+        q.options.every(opt => opt.text.trim() !== '')
+    );
+
     return (
         <form
-            action={AddQuestionFormData}
+            action={(formData) => {
+                const questionsData = questions.map(q => ({
+                    question: q.question,
+                    options: q.options
+                }));
+                formData.append('questionsData', JSON.stringify(questionsData));
+                return AddQuestionFormData(formData);
+            }}
             className="w-full max-w-4xl h-full mx-auto py-6 px-4"
         >
             <div className="h-fit flex justify-between mx-auto">
@@ -79,23 +117,39 @@ export default function AddQuestion() {
 
             <div className="w-full h-fit space-y-6">
                 {questions.map((question, index) => (
-                    <div key={index} className="flex flex-col space-y-2">
-                        <Label htmlFor={`question-${index}`}>Question {index + 1}</Label>
-                        <div className="flex gap-2 items-center">
-                            <Input
-                                id={`question-${index}`}
-                                placeholder="Enter the question"
-                                className="bg-muted"
-                                required
-                                name="question"
-                                value={question}
-                                onChange={(e) => handleQuestionChange(index, e.target.value)}
-                            />
-                            <Trash
-                                color="red"
-                                className="cursor-pointer"
-                                onClick={() => handleDeleteQuestion(index)}
-                            />
+                    <div key={index} className="flex flex-col space-y-4 p-4 border rounded-lg">
+                        <div className="flex flex-col space-y-2">
+                            <Label htmlFor={`question-${index}`}>Question {index + 1}</Label>
+                            <div className="flex gap-2 items-center">
+                                <Input
+                                    id={`question-${index}`}
+                                    placeholder="Enter the question"
+                                    className="bg-muted"
+                                    required
+                                    value={question.question}
+                                    onChange={(e) => handleQuestionChange(index, e.target.value)}
+                                />
+                                <Trash
+                                    color="red"
+                                    className="cursor-pointer"
+                                    onClick={() => handleDeleteQuestion(index)}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            {question.options.map((option, optionIndex) => (
+                                <div key={optionIndex} className="flex flex-col space-y-2">
+                                    <Label>Option {optionIndex + 1} ({option.percentage}%)</Label>
+                                    <Input
+                                        placeholder={`Enter option for ${option.percentage}%`}
+                                        className="bg-muted"
+                                        required
+                                        value={option.text}
+                                        onChange={(e) => handleOptionChange(index, optionIndex, e.target.value)}
+                                    />
+                                </div>
+                            ))}
                         </div>
                     </div>
                 ))}
@@ -105,7 +159,9 @@ export default function AddQuestion() {
                 <Button type="button" variant="outline" onClick={handleAddQuestion}>
                     Add New Question
                 </Button>
-                <Button type="submit">Save Questions</Button>
+                <Button type="submit" disabled={!isFormValid}>
+                    Save Questions
+                </Button>
             </div>
         </form>
     )

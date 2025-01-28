@@ -1,7 +1,12 @@
 import { ModeToggle } from '@/components/Toggle'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
-export default async function Admin() {
+import DeleteQuestions from '@/components/DeleteQuestions'
+import { FindQuestion } from '@/app/actions/actions'
+import { Toaster } from 'sonner'
+
+export default async function AdminQuestionsView() {
+    const questionsData = await FindQuestion()
     return (
         <div className='w-full max-w-4xl h-full mx-auto py-8 px-4'>
             <div className="h-fit flex justify-between mx-auto">
@@ -41,16 +46,39 @@ export default async function Admin() {
                 <ModeToggle />
             </div>
 
-            <div className='w-full h-full gap-10 mt-10 grid grid-cols-1 md:grid-cols-2 sm:grid-cols-1'>
-                <div className='w-full h-32 bg-muted rounded-lg px-10 py-5 flex flex-col justify-between'>
-                    <p className='font-bold text-lg '>Questions</p>
-                    <Button asChild><Link href={"/admin/questions"}>View Questions</Link></Button>
+            <div className='w-full h-fit space-y-6'>
+                <div className='flex items-center justify-between'>
+                    <p className='text-lg text-primary font-bold'>All Questions</p>
+                    <Button asChild><Link href={"/admin/add"}>Add Question</Link></Button>
                 </div>
-                <div className='w-full h-32 bg-muted rounded-lg px-10 py-5 flex flex-col justify-between'>
-                    <p className='font-bold text-lg '>Options</p>
-                    <Button asChild><Link href={"/admin/options"}>View Options</Link></Button>
-                </div>
+                {questionsData.length != 0 ?
+                    questionsData.map((question, index) => (
+                        <div key={index} className='group p-4 sm:p-6 h-fit overflow-hidden rounded-lg border border-border hover:border-primary transition-all duration-300 shadow-sm'>
+                            <div className='flex w-full h-fit items-start justify-between gap-2 sm:gap-4'>
+                                <div className='flex gap-2 sm:gap-4 min-w-0 flex-1'>
+                                    <span className='text-red-500 font-bold flex-shrink-0 min-w-[20px] sm:min-w-[24px] text-sm sm:text-base'>{index + 1}.</span>
+                                    <div className='space-y-2 w-full'>
+                                        <p className='text-xs sm:text-sm font-semibold text-foreground/70 mb-5'>{question.name}</p>
+                                        <div className='grid grid-cols-2 gap-2 text-xs'>
+                                            {question.options.map((option, idx) => (
+                                                <div key={idx} className='p-4 rounded-md bg-muted'>
+                                                    {option.text} - {option.percentage}%
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                                <button className='flex-shrink-0 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200 hover:scale-110'>
+                                    <DeleteQuestions id={question.id} />
+                                </button>
+                            </div>
+                        </div>
+                    )) :
+                    <p className='text-center font-bold animate-pulse'>No questions found</p>
+                }
             </div>
         </div>
     )
 }
+
+

@@ -1,10 +1,9 @@
 import Questions from "@/components/Questions";
 import { ModeToggle } from "@/components/Toggle";
-import { FindOptions, FindQuestion } from "./actions/actions";
+import { FindQuestion } from "./actions/actions";
 
 export default async function Home() {
     const questions = await FindQuestion()
-    const options = await FindOptions()
     return (
         <div className="mx-auto py-8 px-4">
             <div className="max-w-4xl h-fit flex justify-between mx-auto">
@@ -42,7 +41,7 @@ export default async function Home() {
                 </div>
                 <ModeToggle />
             </div>
-           <Questions questions={questions} options={options}/>
+           <Questions questions={questions}/>
         </div>
     );
 }
