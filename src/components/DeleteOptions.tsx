@@ -1,5 +1,5 @@
 "use client"
-import { deleteOptions } from '@/app/actions/actions'
+import { deleteQuestion } from '@/app/actions/actions'
 import { Trash } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
@@ -7,8 +7,8 @@ export default function DeleteOptions({ id }: { id: number }) {
     const router = useRouter()
     
     async function handleDelete() {
-        if (confirm('Are you sure you want to delete this option?')) {
-            await deleteOptions(id)
+        if (confirm('Are you sure you want to delete this question and its options?')) {
+            await deleteQuestion(id)
             router.refresh()
         }
     }

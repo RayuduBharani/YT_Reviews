@@ -1,6 +1,6 @@
-import Questions from "@/components/Questions";
-import { ModeToggle } from "@/components/Toggle";
-import { FindQuestion } from "./actions/actions";
+import Questions from "@/components/Questions"
+import { ModeToggle } from "@/components/Toggle"
+import { FindQuestion } from "./actions/actions"
 
 export default async function Home() {
     const questions = await FindQuestion()

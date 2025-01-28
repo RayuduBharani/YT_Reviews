@@ -1,9 +1,9 @@
 "use server"
 
-import { prisma } from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
-import { cache } from "react";
+import { prisma } from "@/lib/prisma"
+import { revalidatePath } from "next/cache"
+import { redirect } from "next/navigation"
+import { cache } from "react"
 
 export const AddQuestionFormData = async(formData: FormData) => {
     try {
@@ -32,18 +32,6 @@ export const AddQuestionFormData = async(formData: FormData) => {
         redirect("/admin")
     } catch (error) {
         console.error("Error adding question:", error)
-        throw error
-    }
-}
-
-export const deleteOptions = async(id: number) => {
-    try {
-        await prisma.option.delete({
-            where: { id }
-        });
-        revalidatePath("/admin")
-    } catch (error) {
-        console.error("Error deleting option:", error)
         throw error
     }
 }

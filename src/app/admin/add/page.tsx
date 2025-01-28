@@ -8,7 +8,6 @@ import { Trash } from 'lucide-react'
 import { AddQuestionFormData } from '@/app/actions/actions'
 import { useState } from 'react'
 import Link from 'next/link'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function AddQuestion() {
     const [questions, setQuestions] = useState<Array<{

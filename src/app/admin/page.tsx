@@ -3,7 +3,6 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import DeleteQuestions from '@/components/DeleteQuestions'
 import { FindQuestion } from '@/app/actions/actions'
-import { Toaster } from 'sonner'
 
 export default async function AdminQuestionsView() {
     const questionsData = await FindQuestion()
@@ -46,7 +45,7 @@ export default async function AdminQuestionsView() {
                 <ModeToggle />
             </div>
 
-            <div className='w-full h-fit space-y-6'>
+            <div className='w-full h-fit space-y-6'></div>
                 <div className='flex items-center justify-between'>
                     <p className='text-lg text-primary font-bold'>All Questions</p>
                     <Button asChild><Link href={"/admin/add"}>Add Question</Link></Button>
@@ -77,7 +76,6 @@ export default async function AdminQuestionsView() {
                     <p className='text-center font-bold animate-pulse'>No questions found</p>
                 }
             </div>
-        </div>
     )
 }
 
